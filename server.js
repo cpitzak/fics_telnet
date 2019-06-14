@@ -6,28 +6,6 @@ var bodyParser = require('body-parser');
 var app = express();
 var PORT = 3000;
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-
-var cmd = 'ping';
-
-app.post('/foo', function(req, res){
-	// console.log(">" + req.body.cmd);
- //    connection.exec(req.body.cmd, function(err, response) {
- //       console.log("output: ",response)
- //       res.send(req.body.cmd);
- //    });
- connection.send(req.body.cmd, function(err, res2) {
- 	if (err) return err
- 		res.send();
- })
-});
-
-var server = app.listen(PORT, function () {
-	var port = server.address().port;
-	console.log('Listening at http://localhost:' + port);
-});
-
 /* 
 	To see if the regex works run this in the terminal:
 	echo 'fics% ' | grep -o  'fics[^%]*\%\s*$'
@@ -41,16 +19,57 @@ var params = {
 	shellPrompt: /fics[^%]*\%\s*$/,
 	loginPrompt: 'login: ',
 	passwordPrompt: 'password: ',
-	username: 'LEFT_BLANK_FILL_THIS_IN_BEFORE_RUNNING',
-	password: 'LEFT_BLANK_FILL_THIS_IN_BEFORE_RUNNING',
+	username: 'nivo',
+	password: 'osdcpi',
 	initialLFCR: true,
-	timeout: 1000 * 60 * 5,
+	timeout: 1000 * 60 * 15,
 	failedLoginMatch : "Login incorrect",
   // removeEcho: 4
 }
 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+
+// Add headers
+app.use(function (req, res, next) {
+
+    // Website you wish to allow to connect
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');
+
+    // Request methods you wish to allow
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+
+    // Request headers you wish to allow
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+
+    // Set to true if you need the website to include cookies in the requests sent
+    // to the API (e.g. in case you use sessions)
+    res.setHeader('Access-Control-Allow-Credentials', true);
+
+    // Pass to next layer of middleware
+    next();
+});
+
+var cmd = 'ping';
+
+app.post('/cmd', function(req, res){
+ connection.send(req.body.cmd, function(err, res2) {
+ 	if (err) {
+		 res.status(500).send('There was an error. Please contact the web administrator.');
+		 return err;
+	 }
+	 res.send({'text': res2});
+ })
+});
+
+var server = app.listen(PORT, function () {
+	var port = server.address().port;
+	console.log('Listening at http://localhost:' + port);
+});
+
 connection.on('ready', function(prompt) {
-	var mins = 1000 * 60 * 4;
+	var mins = 1000 * 60 * 14;
+	console.log(prompt);
 	console.log('ready');
 	setInterval(function() {
 		console.log(">" + cmd);
